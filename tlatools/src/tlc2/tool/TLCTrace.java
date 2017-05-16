@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import tlc2.output.EC;
 import tlc2.output.MP;
@@ -121,18 +122,30 @@ public class TLCTrace {
 
 	/**
 	 * @see TLCTrace#getLevel(long)
+	 * @return 1 to the length of the longest behavior found so far.
 	 */
 	public final int getLevel() throws IOException {
-	// This assumption (lastPtr) only holds for the TLC in non-parallel mode.
+	    // This assumption (lastPtr) only holds for the TLC in non-parallel mode.
 		// Generally the last line (logically a state) is not necessarily
-		// on the highest level of the state tree. This is only the case if
-		// states are explored strictly by breadth-first search.
+		// on the highest level of the state tree, which is only true if
+		// states are explored with strict breadth-first search.
 		return getLevel(this.lastPtr);
 	}
 
+	public final int getLevel(final Set<Long> lastPtrs) throws IOException {
+		int max = 0;
+		for (long lastPtr : lastPtrs) {
+			max = Math.max(max, getLevel(lastPtr));
+		}
+		return max;
+	}
+
 	/**
-   * @param startLoc The start location (pointer) from where the level (height) of the state tree should be calculated
-	 * @return The level (height) of the state tree.
+	 * @param startLoc
+	 *            The start location (pointer) from where the level (height) of
+	 *            the path in the execution tree should be calculated.
+	 * @return The level (height) of the path in the execution tree (the trace)
+	 *         starting at startLoc.
 	 * @throws IOException
 	 */
 	public synchronized final int getLevel(long startLoc) throws IOException {
